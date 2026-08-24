@@ -21,6 +21,7 @@ model Bookmark {
   id        String   @id @default(uuid())
   title     String
   url       String
+  tags      String[]
   folderId  String
   folder    Folder   @relation(fields: [folderId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
