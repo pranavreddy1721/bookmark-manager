@@ -1,43 +1,149 @@
-# Bookmark Manager
+<div align="center">
 
-A production-minded Bookmark Manager API built with **Bun, TypeScript, GraphQL Yoga, Prisma, and PostgreSQL**.
+<!-- Banner -->
+<img src="https://capsule-render.vercel.app/api?type=waving&color=1e40af&height=200&section=header&text=Bookmark%20Manager&fontSize=56&fontColor=ffffff&fontAlignY=38&desc=Organize%20%E2%80%A2%20Search%20%E2%80%A2%20Manage&descAlignY=58&descSize=20&animation=fadeIn" width="100%" />
 
-The application provides folder and bookmark management through a GraphQL API, including tags, cursor-based pagination, filtering, title search, validation, predictable GraphQL errors, and PostgreSQL integration tests.
+<br/>
+
+<!-- Badges -->
+<p>
+  <img src="https://img.shields.io/badge/Bun-1.x-000000?style=for-the-badge&logo=bun&logoColor=white" />
+  <img src="https://img.shields.io/badge/TypeScript-Strict-3178C6?style=for-the-badge&logo=typescript&logoColor=white" />
+  <img src="https://img.shields.io/badge/GraphQL-Yoga-E10098?style=for-the-badge&logo=graphql&logoColor=white" />
+  <img src="https://img.shields.io/badge/Prisma-ORM-2D3748?style=for-the-badge&logo=prisma&logoColor=white" />
+  <img src="https://img.shields.io/badge/PostgreSQL-16-4169E1?style=for-the-badge&logo=postgresql&logoColor=white" />
+</p>
+<p>
+  <img src="https://img.shields.io/badge/Docker-Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white" />
+  <img src="https://img.shields.io/badge/Bun%20Test-Automated-000000?style=for-the-badge&logo=bun&logoColor=white" />
+  <img src="https://img.shields.io/badge/Cursor-Pagination-yellowgreen?style=for-the-badge" />
+</p>
+
+<br/>
+
+> **A production-minded Bookmark Manager GraphQL API —**  
+> organize bookmarks into folders, search and filter with cursor-based pagination, and manage everything through a single schema-first GraphQL endpoint.
+
+<br/>
+
+[🚀 GraphQL Endpoint](#-graphql-api) &nbsp;•&nbsp; [📖 API Docs](#-graphql-api) &nbsp;•&nbsp; [🐛 Report Bug](https://github.com/pranavreddy1721/bookmark-manager/issues)
+
+</div>
 
 ---
 
-## Tech Stack
+## 📋 Table of Contents
 
-- **Bun** — JavaScript/TypeScript runtime
-- **TypeScript** — Type-safe application code
-- **GraphQL** — API query language
-- **GraphQL Yoga** — GraphQL server
-- **Prisma** — ORM and database access
-- **PostgreSQL** — Relational database
-- **Docker** — Local PostgreSQL environment
-- **Bun Test** — Automated testing
+- [✨ Features](#-features)
+- [🛠️ Tech Stack](#️-tech-stack)
+- [🗂️ Project Structure](#️-project-structure)
+- [🗄️ Database Schema](#️-database-schema)
+- [🔌 GraphQL API](#-graphql-api)
+- [📄 Bookmark Pagination](#-bookmark-pagination)
+- [✅ Validation & Error Handling](#-validation--error-handling)
+- [⚙️ Environment Variables](#️-environment-variables)
+- [🚀 Getting Started](#-getting-started)
+- [🧪 Testing](#-testing)
+- [🔮 How I'd Extend This](#-how-id-extend-this)
+- [🤝 Contributing](#-contributing)
 
 ---
 
-## Features
+## ✨ Features
 
-- Folder CRUD operations
-- Bookmark CRUD operations
-- Bookmark tags
-- Move bookmarks between folders
-- Nested `Folder.bookmarks` queries
-- Cursor-based bookmark pagination
-- Filter bookmarks by folder
+<table>
+<tr>
+<td width="50%">
+
+### 📁 Folders
+- Create folders to organize bookmarks
+- `folders` query — list all folders
+- `folder(id)` query — single folder with nested bookmarks
+- Folder deletion cascades to its bookmarks
+
+</td>
+<td width="50%">
+
+### 🔖 Bookmarks
+- Full CRUD — create, update, delete
+- `moveBookmark` — move a bookmark between folders
+- Tags stored as a string array per bookmark
+- Every bookmark belongs to exactly one folder
+
+</td>
+</tr>
+<tr>
+<td width="50%">
+
+### 🔍 Search & Filtering
 - Case-insensitive substring search by title
-- Bookmark input validation
-- Predictable GraphQL error codes
-- PostgreSQL integration
-- Automated unit and integration tests
-- TypeScript type checking
+- Filter bookmarks by `folderId`
+- Search and folder filtering can be combined
+- Filters compose cleanly with pagination
+
+</td>
+<td width="50%">
+
+### 📄 Cursor Pagination
+- `first` / `after` cursor-based pagination
+- Cursor encodes `createdAt` + `id` as tie-breaker
+- Fetches `n + 1` records to compute `hasNextPage`
+- Works correctly across repeated requests
+
+</td>
+</tr>
+<tr>
+<td width="50%">
+
+### ✅ Validation
+- Rejects empty / whitespace-only titles
+- Rejects malformed or invalid URLs
+- Tag limits — max 20 tags, 50 chars each
+- Meaningful `BAD_USER_INPUT` GraphQL errors
+
+</td>
+<td width="50%">
+
+### 🧪 Testing
+- Unit tests for resolvers with real assertions
+- Dedicated validation test suite
+- Integration tests against real PostgreSQL
+- Type checking via `tsc --noEmit`
+
+</td>
+</tr>
+</table>
 
 ---
 
-## Project Structure
+## 🛠️ Tech Stack
+
+### ⚙️ Runtime & API
+
+| Technology | Purpose |
+|---|---|
+| **Bun** | JavaScript/TypeScript runtime |
+| **TypeScript (strict)** | Type-safe application code, no `any` |
+| **GraphQL Yoga** | Schema-first GraphQL server |
+| **GraphQL (SDL)** | Schema defined in `schema.ts`, resolvers implemented separately |
+
+### 🗄️ Database
+
+| Technology | Purpose |
+|---|---|
+| **PostgreSQL** | Relational database |
+| **Prisma** | ORM, migrations, and type-safe query access |
+| **Docker Compose** | Local PostgreSQL environment |
+
+### 🧪 Testing
+
+| Technology | Purpose |
+|---|---|
+| **Bun Test** | Built-in test runner for unit + integration tests |
+
+---
+
+## 🗂️ Project Structure
 
 ```text
 bookmark-manager/
@@ -52,18 +158,18 @@ bookmark-manager/
 │
 ├── src/
 │   ├── graphql/
-│   │   ├── resolvers.ts
-│   │   └── schema.ts
+│   │   ├── schema.ts             # GraphQL SDL (types, queries, mutations)
+│   │   └── resolvers.ts          # Resolver implementations
 │   ├── lib/
-│   │   └── prisma.ts
+│   │   └── prisma.ts             # Prisma client singleton
 │   ├── validation/
-│   │   └── bookmark.ts
-│   └── server.ts
+│   │   └── bookmark.ts           # Title / URL / tag validation
+│   └── server.ts                 # GraphQL Yoga server entry point
 │
 ├── tests/
-│   ├── integration.test.ts
-│   ├── resolvers.test.ts
-│   └── validation.test.ts
+│   ├── validation.test.ts        # Unit tests — input validation
+│   ├── resolvers.test.ts         # Unit tests — resolver behavior
+│   └── integration.test.ts       # Integration tests — real PostgreSQL
 │
 ├── .env
 ├── docker-compose.yml
@@ -75,132 +181,57 @@ bookmark-manager/
 
 ---
 
-## Prerequisites
+## 🗄️ Database Schema
 
-Install the following before running the project:
-
-- [Bun](https://bun.com/)
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
-- Git
-
-The application uses PostgreSQL running inside Docker.
-
----
-
-## Installation
-
-Clone the repository:
-
-```bash
-git clone <YOUR_REPOSITORY_URL>
+### 📁 Folder
+```
+Folder {
+  id         String   — Primary key
+  name       String   — Unique
+  createdAt  DateTime
+  updatedAt  DateTime
+  bookmarks  Bookmark[]  — One-to-many relation
+}
 ```
 
-Enter the project directory:
-
-```bash
-cd bookmark-manager
+### 🔖 Bookmark
+```
+Bookmark {
+  id         String   — Primary key
+  title      String   — Required, non-empty
+  url        String   — Required, must be a valid URL
+  tags       String[] — Max 20 tags, 50 chars each
+  folderId   String   → Folder.id
+  createdAt  DateTime
+  updatedAt  DateTime
+}
 ```
 
-Install dependencies:
-
-```bash
-bun install
-```
-
----
-
-## Environment Variables
-
-Create a `.env` file in the project root:
-
-```env
-DATABASE_URL="postgresql://postgres:postgres@localhost:5432/bookmark_manager?schema=public"
-```
-
-The application uses `DATABASE_URL` to connect to PostgreSQL.
-
-Do not commit `.env` or real credentials to source control.
-
----
-
-## Start PostgreSQL
-
-Start the PostgreSQL container:
-
-```bash
-docker compose up -d
-```
-
-Check the running containers:
-
-```bash
-docker ps
-```
-
-The PostgreSQL container should be running and healthy.
-
-The database is exposed on:
+### 🔗 Relationships
 
 ```text
-localhost:5432
+Folder
+  │
+  └── has many
+          │
+          ▼
+      Bookmark
 ```
+
+`Bookmark.folderId` references `Folder.id`. Deleting a folder cascades to its bookmarks.
+
+### 📊 Indexes
+
+| Model | Indexed fields |
+|---|---|
+| **Folder** | `createdAt` |
+| **Bookmark** | `folderId`, `title`, `createdAt` |
+
+These support folder filtering, title search, ordering, and cursor pagination.
 
 ---
 
-## Database Setup
-
-Apply the Prisma migrations:
-
-```bash
-bunx prisma migrate dev
-```
-
-Generate the Prisma Client:
-
-```bash
-bunx prisma generate
-```
-
-The database contains the following main models:
-
-- `Folder`
-- `Bookmark`
-
----
-
-## Run the Development Server
-
-Start the development server:
-
-```bash
-bun run dev
-```
-
-The GraphQL API is available at:
-
-```text
-http://localhost:4000/graphql
-```
-
-The development server uses Bun watch mode and automatically reloads when source files change.
-
----
-
-## Production-Style Start
-
-To start the server without watch mode:
-
-```bash
-bun run start
-```
-
-The server uses port `4000` by default.
-
-A different port can be provided through the `PORT` environment variable.
-
----
-
-# GraphQL API
+## 🔌 GraphQL API
 
 The GraphQL endpoint is:
 
@@ -208,9 +239,15 @@ The GraphQL endpoint is:
 POST http://localhost:4000/graphql
 ```
 
----
+### Queries
 
-## Query Folders
+| Query | Description |
+|---|---|
+| `folders` | Returns all folders |
+| `folder(id)` | Returns a single folder with its nested bookmarks |
+| `bookmarks(folderId?, search?, first?, after?)` | Returns bookmarks with optional folder filtering, title search, and cursor pagination |
+
+#### Query Folders
 
 ```graphql
 query {
@@ -230,9 +267,7 @@ query {
 }
 ```
 
----
-
-## Query a Single Folder
+#### Query a Single Folder
 
 ```graphql
 query {
@@ -254,180 +289,19 @@ query {
 }
 ```
 
----
+### Mutations
 
-# Bookmark Pagination
+| Mutation | Description |
+|---|---|
+| `createFolder` | Create a new folder |
+| `updateFolder` | Rename an existing folder |
+| `deleteFolder` | Delete a folder and its bookmarks |
+| `createBookmark` | Create a new bookmark inside a folder |
+| `updateBookmark` | Update an existing bookmark's fields |
+| `deleteBookmark` | Delete a bookmark |
+| `moveBookmark(id, folderId)` | Move an existing bookmark to another folder |
 
-Bookmarks use cursor-based pagination.
-
-The `first` argument controls the number of records returned.
-
-```graphql
-query {
-  bookmarks(first: 10) {
-    items {
-      id
-      title
-      url
-      tags
-      folderId
-      createdAt
-      updatedAt
-    }
-    nextCursor
-    hasNextPage
-  }
-}
-```
-
-The API returns:
-
-```text
-items
-nextCursor
-hasNextPage
-```
-
-When `hasNextPage` is `true`, use `nextCursor` as the `after` value for the next request.
-
-Example:
-
-```graphql
-query {
-  bookmarks(
-    first: 10
-    after: "NEXT_CURSOR"
-  ) {
-    items {
-      id
-      title
-      url
-      tags
-      folderId
-    }
-    nextCursor
-    hasNextPage
-  }
-}
-```
-
----
-
-# Bookmark Filtering
-
-## Filter by Folder
-
-```graphql
-query {
-  bookmarks(
-    first: 10
-    folderId: "FOLDER_ID"
-  ) {
-    items {
-      id
-      title
-      url
-      tags
-      folderId
-    }
-    nextCursor
-    hasNextPage
-  }
-}
-```
-
----
-
-## Search by Title
-
-The `search` argument performs a case-insensitive substring search against bookmark titles.
-
-```graphql
-query {
-  bookmarks(
-    first: 10
-    search: "documentation"
-  ) {
-    items {
-      id
-      title
-      url
-      tags
-      folderId
-    }
-    nextCursor
-    hasNextPage
-  }
-}
-```
-
-For example, a search for:
-
-```text
-Pagination
-```
-
-can return:
-
-```text
-Pagination Test 1
-Pagination Test 2
-```
-
----
-
-## Combine Search, Folder Filtering, and Pagination
-
-The filtering options can be used together.
-
-```graphql
-query {
-  bookmarks(
-    first: 10
-    search: "documentation"
-    folderId: "FOLDER_ID"
-  ) {
-    items {
-      id
-      title
-      url
-      tags
-      folderId
-    }
-    nextCursor
-    hasNextPage
-  }
-}
-```
-
-Pagination can also be continued using `after`:
-
-```graphql
-query {
-  bookmarks(
-    first: 10
-    after: "NEXT_CURSOR"
-    search: "documentation"
-    folderId: "FOLDER_ID"
-  ) {
-    items {
-      id
-      title
-      url
-      tags
-      folderId
-    }
-    nextCursor
-    hasNextPage
-  }
-}
-```
-
----
-
-# Folder Mutations
-
-## Create Folder
+#### Create Folder
 
 ```graphql
 mutation {
@@ -440,52 +314,14 @@ mutation {
 }
 ```
 
----
-
-## Update Folder
-
-```graphql
-mutation {
-  updateFolder(
-    id: "FOLDER_ID"
-    name: "Work"
-  ) {
-    id
-    name
-    createdAt
-    updatedAt
-  }
-}
-```
-
----
-
-## Delete Folder
-
-```graphql
-mutation {
-  deleteFolder(id: "FOLDER_ID")
-}
-```
-
-Deleting a folder also deletes its bookmarks because the Prisma relationship uses cascade deletion.
-
----
-
-# Bookmark Mutations
-
-## Create Bookmark
+#### Create Bookmark
 
 ```graphql
 mutation {
   createBookmark(
     title: "Bun Documentation"
     url: "https://bun.sh/docs"
-    tags: [
-      "bun"
-      "typescript"
-      "development"
-    ]
+    tags: ["bun", "typescript", "development"]
     folderId: "FOLDER_ID"
   ) {
     id
@@ -499,9 +335,7 @@ mutation {
 }
 ```
 
----
-
-## Update Bookmark
+#### Update Bookmark
 
 ```graphql
 mutation {
@@ -509,34 +343,23 @@ mutation {
     id: "BOOKMARK_ID"
     title: "Bun Documentation Updated"
     url: "https://bun.sh/docs/runtime"
-    tags: [
-      "bun"
-      "runtime"
-      "typescript"
-    ]
-    folderId: "FOLDER_ID"
+    tags: ["bun", "runtime", "typescript"]
   ) {
     id
     title
     url
     tags
     folderId
-    createdAt
     updatedAt
   }
 }
 ```
 
----
-
-## Move Bookmark
+#### Move Bookmark
 
 ```graphql
 mutation {
-  moveBookmark(
-    id: "BOOKMARK_ID"
-    folderId: "NEW_FOLDER_ID"
-  ) {
+  moveBookmark(id: "BOOKMARK_ID", folderId: "NEW_FOLDER_ID") {
     id
     title
     folderId
@@ -545,9 +368,7 @@ mutation {
 }
 ```
 
----
-
-## Delete Bookmark
+#### Delete Bookmark
 
 ```graphql
 mutation {
@@ -557,324 +378,181 @@ mutation {
 
 ---
 
-# Validation
+## 📄 Bookmark Pagination
 
-Bookmark creation and updates validate the following:
+Bookmarks use **cursor-based pagination**.
 
-- Title is required
-- Title must be 200 characters or fewer
-- URL is required
-- URL must be valid
-- Folder ID is required
-- Maximum 20 tags per bookmark
-- Tags cannot be empty
-- Each tag must be 50 characters or fewer
+| Argument | Description |
+|---|---|
+| `first` | Number of records to return |
+| `after` | Cursor to resume from (returned as `nextCursor`) |
 
-Invalid input returns a GraphQL error using:
-
-```text
-BAD_USER_INPUT
+```graphql
+query {
+  bookmarks(first: 10) {
+    items {
+      id
+      title
+      url
+      tags
+      folderId
+      createdAt
+    }
+    nextCursor
+    hasNextPage
+  }
+}
 ```
 
-Example:
+When `hasNextPage` is `true`, pass `nextCursor` as `after` on the next request:
 
-```text
-URL must be valid
+```graphql
+query {
+  bookmarks(first: 10, after: "NEXT_CURSOR") {
+    items {
+      id
+      title
+      url
+    }
+    nextCursor
+    hasNextPage
+  }
+}
 ```
 
-with:
+**How it works:** the cursor encodes `createdAt` + `id`. Records are ordered `createdAt ASC, id ASC`, with `id` acting as a deterministic tie-breaker when timestamps collide. The resolver fetches one extra record beyond the requested page size to determine `hasNextPage` without a separate count query. Search and folder filtering compose with pagination — both can be combined with `first`/`after` in the same request.
 
-```text
-code: BAD_USER_INPUT
+### Filtering
+
+```graphql
+query {
+  bookmarks(first: 10, folderId: "FOLDER_ID", search: "documentation") {
+    items {
+      id
+      title
+      url
+      tags
+      folderId
+    }
+    nextCursor
+    hasNextPage
+  }
+}
 ```
+
+`search` performs a case-insensitive substring match against bookmark titles.
 
 ---
 
-# Error Handling
+## ✅ Validation & Error Handling
 
-The API provides predictable GraphQL error codes.
+Bookmark creation and updates validate:
 
-## BAD_USER_INPUT
+| Field | Rule |
+|---|---|
+| `title` | Required, non-empty, not whitespace-only, ≤ 200 chars |
+| `url` | Required, must be a well-formed URL |
+| `folderId` | Required, non-empty; referenced folder must exist |
+| `tags` | Max 20 tags, each ≤ 50 chars, no empty tags |
 
-Used for invalid client input, including:
+### Error Codes
 
-- Invalid URL
-- Empty title
-- Empty folder ID
-- Too many tags
-- Empty tags
-- Tags longer than 50 characters
-- Invalid pagination cursor
-- Invalid pagination size
-
-Example:
+| Code | Used for |
+|---|---|
+| `BAD_USER_INPUT` | Invalid URL, empty title, empty folder ID, too many/invalid tags, invalid pagination cursor or size |
+| `NOT_FOUND` | Bookmark not found, folder not found, moving a bookmark to a non-existent folder |
 
 ```json
 {
   "errors": [
     {
       "message": "URL must be valid",
-      "extensions": {
-        "code": "BAD_USER_INPUT"
-      }
+      "extensions": { "code": "BAD_USER_INPUT" }
     }
   ],
   "data": null
 }
 ```
 
----
-
-## NOT_FOUND
-
-Used when a requested resource does not exist.
-
-Examples:
-
-- Bookmark does not exist
-- Folder does not exist
-- Bookmark is moved to a nonexistent folder
-
-Example:
-
-```json
-{
-  "errors": [
-    {
-      "message": "Folder not found",
-      "extensions": {
-        "code": "NOT_FOUND"
-      }
-    }
-  ],
-  "data": null
-}
-```
+Validation and expected resource errors return structured GraphQL errors with specific error codes instead of exposing raw database errors.
 
 ---
 
-# Database Design
+## ⚙️ Environment Variables
 
-## Folder
+Create a `.env` file in the project root:
 
-A `Folder` contains:
+```env
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/bookmark_manager?schema=public"
+```
 
-- `id`
-- `name`
-- `createdAt`
-- `updatedAt`
+The application reads `DATABASE_URL` to connect to PostgreSQL.
 
-A folder can contain multiple bookmarks.
-
-The folder name is unique.
+> ⚠️ **Never commit `.env` files to Git.**
 
 ---
 
-## Bookmark
+## 🚀 Getting Started
 
-A `Bookmark` contains:
-
-- `id`
-- `title`
-- `url`
-- `tags`
-- `folderId`
-- `createdAt`
-- `updatedAt`
-
-Each bookmark belongs to exactly one folder.
-
----
-
-## Relationships
-
-```text
-Folder
-  │
-  └── has many
-          │
-          ▼
-      Bookmark
-```
-
-The `Bookmark.folderId` field references `Folder.id`.
-
-Deleting a folder cascades to its bookmarks.
-
----
-
-# Database Indexes
-
-The database contains indexes supporting common query patterns.
-
-### Folder
-
-```text
-createdAt
-```
-
-### Bookmark
-
-```text
-folderId
-title
-createdAt
-```
-
-These indexes support:
-
-- Folder filtering
-- Title search
-- Ordering
-- Cursor pagination
-
----
-
-# Cursor Pagination Design
-
-Bookmark pagination uses a cursor containing:
-
-```text
-createdAt
-id
-```
-
-Bookmarks are ordered using:
-
-```text
-createdAt ASC
-id ASC
-```
-
-The bookmark ID acts as a deterministic tie-breaker when multiple bookmarks have the same creation timestamp.
-
-The resolver requests one additional record beyond the requested page size.
-
-This allows the API to determine whether another page exists.
-
-The response contains:
-
-```text
-items
-nextCursor
-hasNextPage
-```
-
----
-
-# Testing
-
-The project uses Bun's built-in test runner.
-
-Run all tests:
+### Prerequisites
 
 ```bash
-bun run test
+bun --version    # latest
+docker --version
 ```
 
-The current test suite contains:
-
-### Validation Tests
-
-`tests/validation.test.ts`
-
-Tests include:
-
-- Valid bookmark input
-- Invalid URL
-- Empty title
-- Maximum tag limit
-
-### Resolver Tests
-
-`tests/resolvers.test.ts`
-
-Tests include:
-
-- Invalid bookmark URL
-- `BAD_USER_INPUT` error handling
-- Empty folder ID
-
-### PostgreSQL Integration Tests
-
-`tests/integration.test.ts`
-
-Tests include:
-
-- Creating and reading a bookmark using PostgreSQL
-- Loading bookmarks through the folder relationship
-
-The integration tests use the real PostgreSQL database running through Docker.
-
----
-
-# Type Checking
-
-Run:
+### 1. Clone the repository
 
 ```bash
-bun run typecheck
+git clone <YOUR_REPOSITORY_URL>
+cd bookmark-manager
 ```
 
-The command runs:
-
-```text
-tsc --noEmit
-```
-
-The project should complete type checking without errors.
-
----
-
-# Development Commands
-
-Install dependencies:
+### 2. Install dependencies
 
 ```bash
 bun install
 ```
 
-Start PostgreSQL:
+### 3. Start PostgreSQL
 
 ```bash
 docker compose up -d
+docker ps   # confirm the container is healthy
 ```
 
-Check containers:
+The database is exposed on `localhost:5432`.
 
-```bash
-docker ps
-```
-
-Run Prisma migrations:
+### 4. Set up the database
 
 ```bash
 bunx prisma migrate dev
-```
-
-Generate Prisma Client:
-
-```bash
 bunx prisma generate
 ```
 
-Start development server:
+### 5. Start the server
 
 ```bash
 bun run dev
 ```
 
-Start server without watch mode:
+The GraphQL API is available at:
+
+```text
+http://localhost:4000/graphql
+```
+
+### Production-style start
 
 ```bash
 bun run start
 ```
 
-Run type checking:
+Runs without watch mode. Default port is `4000`, configurable via `PORT`.
 
-```bash
-bun run typecheck
-```
+---
+
+## 🧪 Testing
 
 Run all tests:
 
@@ -882,64 +560,75 @@ Run all tests:
 bun run test
 ```
 
-Stop PostgreSQL:
+| Suite | File | Covers |
+|---|---|---|
+| **Validation** | `tests/validation.test.ts` | Valid input, invalid URL, empty title, max tag limit |
+| **Resolvers** | `tests/resolvers.test.ts` | Invalid bookmark URL, `BAD_USER_INPUT` handling, empty folder ID |
+| **Integration** | `tests/integration.test.ts` | Real PostgreSQL create/read, nested folder → bookmark loading |
 
-```bash
-docker compose down
-```
+Integration tests run against the actual PostgreSQL instance started via Docker — not mocked.
 
----
-
-# Production Considerations
-
-For a production deployment, the following should be considered:
-
-- Use managed PostgreSQL instead of a local Docker database
-- Store database credentials in a secure secret manager
-- Configure environment-specific variables
-- Use appropriate database connection pooling
-- Add structured application logging
-- Add health checks
-- Add API rate limiting
-- Configure GraphQL request limits
-- Run database migrations as part of deployment
-- Add CI/CD automation
-- Run type checking and tests in CI
-- Configure HTTPS
-- Apply appropriate network and database security controls
-- Add application monitoring and alerting
-
-Authentication and authorization are outside the current implementation scope.
-
-Redis, GraphQL Federation, and unrelated infrastructure are also outside the current project scope.
-
----
-
-# Verification
-
-The project should pass both type checking and automated tests before committing changes.
-
-Run:
+### Type Checking
 
 ```bash
 bun run typecheck
 ```
 
-Then:
+Runs `tsc --noEmit`; the project completes without errors.
 
-```bash
-bun run test
-```
-
-Expected test result for the current implementation:
+Expected result before committing:
 
 ```text
-9 pass
-0 fail
+bun run typecheck   →  no errors
+bun run test        →  9 pass, 0 fail
 ```
 
 ---
 
-# License
+## 🔮 How I'd Extend This
+
+If this evolved into a larger production system:
+
+| Area | Direction |
+|---|---|
+| **Authentication** | Add JWT-based auth so bookmarks/folders are scoped per user |
+| **Authorization** | Role-based access if the app grows shared/team folders |
+| **Caching** | Cache hot `folders`/`bookmarks` queries (e.g. Redis) with targeted invalidation on writes |
+| **Search** | Move from case-insensitive substring search to full-text search (Postgres `tsvector` or a dedicated search index) |
+| **Observability** | Structured logging, request tracing, and metrics on resolver latency |
+| **API Versioning** | Schema evolution strategy — deprecation directives before breaking changes |
+| **Scaling** | Connection pooling (e.g. PgBouncer), read replicas, and horizontal scaling of the API layer |
+
+These are intentionally **not implemented** — the current scope stays focused on the core folder/bookmark GraphQL API, cursor pagination, validation, and testing as specified.
+
+---
+
+## 🤝 Contributing
+
+```bash
+# 1. Fork the repo
+# 2. Create your feature branch
+git checkout -b feature/AmazingFeature
+
+# 3. Commit your changes
+git commit -m 'feat: add AmazingFeature'
+
+# 4. Push to the branch
+git push origin feature/AmazingFeature
+
+# 5. Open a Pull Request
+```
+
+---
+
+## 📄 License
 
 This project was created as part of a technical assignment.
+
+<div align="center">
+
+**Built with ❤️ by [Pranav Reddy](https://github.com/pranavreddy1721)**
+
+<img src="https://capsule-render.vercel.app/api?type=waving&color=1e40af&height=100&section=footer" width="100%" />
+
+</div>
