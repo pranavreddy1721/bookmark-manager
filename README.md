@@ -158,7 +158,7 @@ bookmark-manager/
 │
 ├── src/
 │   ├── graphql/
-│   │   ├── schema.ts             # GraphQL SDL (types, queries, mutations)
+│   │   ├── schema.graphql        # GraphQL SDL (types, queries, mutations)
 │   │   └── resolvers.ts          # Resolver implementations
 │   ├── lib/
 │   │   └── prisma.ts             # Prisma client singleton
