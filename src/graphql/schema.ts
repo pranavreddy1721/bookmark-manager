@@ -29,7 +29,12 @@ const typeDefs = /* GraphQL */ `
   type Query {
     folders: [Folder!]!
     folder(id: ID!): Folder
-    bookmarks(first: Int!, after: String): BookmarkPage!
+    bookmarks(
+      first: Int!
+      after: String
+      folderId: ID
+      search: String
+    ): BookmarkPage!
   }
 
   type Mutation {
