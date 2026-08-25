@@ -1,6 +1,7 @@
-import { buildSchema } from "graphql";
+import { createSchema } from "graphql-yoga";
+import { resolvers } from "./resolvers.ts";
 
-export const schema = buildSchema(`
+const typeDefs = /* GraphQL */ `
   type Folder {
     id: ID!
     name: String!
@@ -19,48 +20,36 @@ export const schema = buildSchema(`
     updatedAt: String!
   }
 
-  type BookmarkConnection {
+  type BookmarkPage {
     items: [Bookmark!]!
     nextCursor: String
-    hasMore: Boolean!
+    hasNextPage: Boolean!
   }
 
   type Query {
     folders: [Folder!]!
     folder(id: ID!): Folder
-    bookmarks(
-      folderId: ID
-      search: String
-      take: Int
-      cursor: String
-    ): BookmarkConnection!
-  }
-
-  input CreateFolderInput {
-    name: String!
-  }
-
-  input CreateBookmarkInput {
-    title: String!
-    url: String!
-    tags: [String!]
-    folderId: ID!
-  }
-
-  input UpdateBookmarkInput {
-    title: String
-    url: String
-    tags: [String!]
+    bookmarks(first: Int!, after: String): BookmarkPage!
   }
 
   type Mutation {
-    createFolder(input: CreateFolderInput!): Folder!
+    createFolder(name: String!): Folder!
+    updateFolder(id: ID!, name: String!): Folder!
+    deleteFolder(id: ID!): Boolean!
 
-    createBookmark(input: CreateBookmarkInput!): Bookmark!
+    createBookmark(
+      title: String!
+      url: String!
+      tags: [String!]!
+      folderId: ID!
+    ): Bookmark!
 
     updateBookmark(
       id: ID!
-      input: UpdateBookmarkInput!
+      title: String!
+      url: String!
+      tags: [String!]!
+      folderId: ID!
     ): Bookmark!
 
     deleteBookmark(id: ID!): Boolean!
@@ -70,4 +59,9 @@ export const schema = buildSchema(`
       folderId: ID!
     ): Bookmark!
   }
-`);
+`;
+
+export const schema = createSchema({
+  typeDefs,
+  resolvers,
+});
