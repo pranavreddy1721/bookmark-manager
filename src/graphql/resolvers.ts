@@ -9,8 +9,8 @@ type BookmarkCursor = {
 };
 
 type BookmarkQueryArgs = {
-  first: number;
-  after?: string | null;
+  take: number;
+  cursor?: string | null;
   folderId?: string | null;
   search?: string | null;
 };
@@ -106,15 +106,17 @@ export const resolvers = {
       _parent: unknown,
       args: BookmarkQueryArgs,
     ) => {
-      if (args.first < 1 || args.first > 100) {
-        throw new GraphQLError("first must be between 1 and 100", {
+      if (args.take < 1 || args.take > 100) {
+        throw new GraphQLError("take must be between 1 and 100", {
           extensions: {
             code: "BAD_USER_INPUT",
           },
         });
       }
 
-      const cursor = args.after ? decodeCursor(args.after) : null;
+      const cursor = args.cursor
+        ? decodeCursor(args.cursor)
+        : null;
 
       const search = args.search?.trim() || undefined;
       const folderId = args.folderId?.trim() || undefined;
@@ -155,7 +157,7 @@ export const resolvers = {
       }
 
       const bookmarks = await prisma.bookmark.findMany({
-        take: args.first + 1,
+        take: args.take + 1,
 
         ...(filters.length > 0
           ? {
@@ -175,10 +177,10 @@ export const resolvers = {
         ],
       });
 
-      const hasNextPage = bookmarks.length > args.first;
+      const hasNextPage = bookmarks.length > args.take;
 
       const items = hasNextPage
-        ? bookmarks.slice(0, args.first)
+        ? bookmarks.slice(0, args.take)
         : bookmarks;
 
       const lastItem = items.at(-1);

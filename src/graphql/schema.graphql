@@ -26,8 +26,8 @@ type Query {
   folders: [Folder!]!
   folder(id: ID!): Folder
   bookmarks(
-    first: Int!
-    after: String
+    take: Int!
+    cursor: String
     folderId: ID
     search: String
   ): BookmarkPage!
