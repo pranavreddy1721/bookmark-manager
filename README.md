@@ -85,7 +85,7 @@
 <td width="50%">
 
 ### 📄 Cursor Pagination
-- `first` / `after` cursor-based pagination
+- `take` / `cursor` cursor-based pagination
 - Cursor encodes `createdAt` + `id` as tie-breaker
 - Fetches `n + 1` records to compute `hasNextPage`
 - Works correctly across repeated requests
@@ -245,7 +245,7 @@ POST http://localhost:4000/graphql
 |---|---|
 | `folders` | Returns all folders |
 | `folder(id)` | Returns a single folder with its nested bookmarks |
-| `bookmarks(folderId?, search?, first?, after?)` | Returns bookmarks with optional folder filtering, title search, and cursor pagination |
+| `bookmarks(folderId?, search?, take?, cursor?)` | Returns bookmarks with optional folder filtering, title search, and cursor pagination |
 
 #### Query Folders
 
@@ -384,12 +384,12 @@ Bookmarks use **cursor-based pagination**.
 
 | Argument | Description |
 |---|---|
-| `first` | Number of records to return |
-| `after` | Cursor to resume from (returned as `nextCursor`) |
+| `take` | Number of records to return |
+| `cursor` | Cursor to resume from (returned as `nextCursor`) |
 
 ```graphql
 query {
-  bookmarks(first: 10) {
+  bookmarks(take: 10) {
     items {
       id
       title
@@ -404,11 +404,11 @@ query {
 }
 ```
 
-When `hasNextPage` is `true`, pass `nextCursor` as `after` on the next request:
+When `hasNextPage` is `true`, pass `nextCursor` as `cursor` on the next request:
 
 ```graphql
 query {
-  bookmarks(first: 10, after: "NEXT_CURSOR") {
+  bookmarks(take: 10, cursor: "NEXT_CURSOR") {
     items {
       id
       title
@@ -420,13 +420,13 @@ query {
 }
 ```
 
-**How it works:** the cursor encodes `createdAt` + `id`. Records are ordered `createdAt ASC, id ASC`, with `id` acting as a deterministic tie-breaker when timestamps collide. The resolver fetches one extra record beyond the requested page size to determine `hasNextPage` without a separate count query. Search and folder filtering compose with pagination — both can be combined with `first`/`after` in the same request.
+**How it works:** the cursor encodes `createdAt` + `id`. Records are ordered `createdAt ASC, id ASC`, with `id` acting as a deterministic tie-breaker when timestamps collide. The resolver fetches one extra record beyond the requested page size to determine `hasNextPage` without a separate count query. Search and folder filtering compose with pagination — both can be combined with `take`/`cursor` in the same request.
 
 ### Filtering
 
 ```graphql
 query {
-  bookmarks(first: 10, folderId: "FOLDER_ID", search: "documentation") {
+  bookmarks(take: 10, folderId: "FOLDER_ID", search: "documentation") {
     items {
       id
       title
