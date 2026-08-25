@@ -1,10 +1,18 @@
 import { GraphQLError } from "graphql";
+import { Prisma } from "../../generated/prisma/client.ts";
 import { prisma } from "../lib/prisma.ts";
 import { validateBookmarkInput } from "../validation/bookmark.ts";
 
 type BookmarkCursor = {
   createdAt: string;
   id: string;
+};
+
+type BookmarkQueryArgs = {
+  first: number;
+  after?: string | null;
+  folderId?: string | null;
+  search?: string | null;
 };
 
 function encodeCursor(cursor: BookmarkCursor): string {
@@ -40,6 +48,42 @@ function decodeCursor(cursor: string): BookmarkCursor {
   }
 }
 
+function handlePrismaNotFound(
+  error: unknown,
+  message: string,
+): never {
+  if (
+    error instanceof Prisma.PrismaClientKnownRequestError &&
+    error.code === "P2025"
+  ) {
+    throw new GraphQLError(message, {
+      extensions: {
+        code: "NOT_FOUND",
+      },
+    });
+  }
+
+  throw error;
+}
+
+function handlePrismaForeignKeyError(
+  error: unknown,
+  message: string,
+): never {
+  if (
+    error instanceof Prisma.PrismaClientKnownRequestError &&
+    error.code === "P2003"
+  ) {
+    throw new GraphQLError(message, {
+      extensions: {
+        code: "NOT_FOUND",
+      },
+    });
+  }
+
+  throw error;
+}
+
 export const resolvers = {
   Query: {
     folders: async () => {
@@ -60,10 +104,7 @@ export const resolvers = {
 
     bookmarks: async (
       _parent: unknown,
-      args: {
-        first: number;
-        after?: string | null;
-      },
+      args: BookmarkQueryArgs,
     ) => {
       if (args.first < 1 || args.first > 100) {
         throw new GraphQLError("first must be between 1 and 100", {
@@ -75,27 +116,55 @@ export const resolvers = {
 
       const cursor = args.after ? decodeCursor(args.after) : null;
 
+      const search = args.search?.trim() || undefined;
+      const folderId = args.folderId?.trim() || undefined;
+
+      const filters = [];
+
+      if (folderId) {
+        filters.push({
+          folderId,
+        });
+      }
+
+      if (search) {
+        filters.push({
+          title: {
+            contains: search,
+            mode: "insensitive" as const,
+          },
+        });
+      }
+
+      if (cursor) {
+        filters.push({
+          OR: [
+            {
+              createdAt: {
+                gt: new Date(cursor.createdAt),
+              },
+            },
+            {
+              createdAt: new Date(cursor.createdAt),
+              id: {
+                gt: cursor.id,
+              },
+            },
+          ],
+        });
+      }
+
       const bookmarks = await prisma.bookmark.findMany({
         take: args.first + 1,
-        ...(cursor
+
+        ...(filters.length > 0
           ? {
               where: {
-                OR: [
-                  {
-                    createdAt: {
-                      gt: new Date(cursor.createdAt),
-                    },
-                  },
-                  {
-                    createdAt: new Date(cursor.createdAt),
-                    id: {
-                      gt: cursor.id,
-                    },
-                  },
-                ],
+                AND: filters,
               },
             }
           : {}),
+
         orderBy: [
           {
             createdAt: "asc",
@@ -159,27 +228,41 @@ export const resolvers = {
       _parent: unknown,
       args: { id: string; name: string },
     ) => {
-      return prisma.folder.update({
-        where: {
-          id: args.id,
-        },
-        data: {
-          name: args.name,
-        },
-      });
+      try {
+        return await prisma.folder.update({
+          where: {
+            id: args.id,
+          },
+          data: {
+            name: args.name,
+          },
+        });
+      } catch (error) {
+        return handlePrismaNotFound(
+          error,
+          "Folder not found",
+        );
+      }
     },
 
     deleteFolder: async (
       _parent: unknown,
       args: { id: string },
     ) => {
-      await prisma.folder.delete({
-        where: {
-          id: args.id,
-        },
-      });
+      try {
+        await prisma.folder.delete({
+          where: {
+            id: args.id,
+          },
+        });
 
-      return true;
+        return true;
+      } catch (error) {
+        return handlePrismaNotFound(
+          error,
+          "Folder not found",
+        );
+      }
     },
 
     createBookmark: async (
@@ -193,14 +276,21 @@ export const resolvers = {
     ) => {
       validateBookmarkInput(args);
 
-      return prisma.bookmark.create({
-        data: {
-          title: args.title.trim(),
-          url: args.url.trim(),
-          tags: args.tags.map((tag) => tag.trim()),
-          folderId: args.folderId.trim(),
-        },
-      });
+      try {
+        return await prisma.bookmark.create({
+          data: {
+            title: args.title.trim(),
+            url: args.url.trim(),
+            tags: args.tags.map((tag) => tag.trim()),
+            folderId: args.folderId.trim(),
+          },
+        });
+      } catch (error) {
+        return handlePrismaForeignKeyError(
+          error,
+          "Folder not found",
+        );
+      }
     },
 
     updateBookmark: async (
@@ -215,30 +305,67 @@ export const resolvers = {
     ) => {
       validateBookmarkInput(args);
 
-      return prisma.bookmark.update({
-        where: {
-          id: args.id,
-        },
-        data: {
-          title: args.title.trim(),
-          url: args.url.trim(),
-          tags: args.tags.map((tag) => tag.trim()),
-          folderId: args.folderId.trim(),
-        },
-      });
+      try {
+        return await prisma.bookmark.update({
+          where: {
+            id: args.id,
+          },
+          data: {
+            title: args.title.trim(),
+            url: args.url.trim(),
+            tags: args.tags.map((tag) => tag.trim()),
+            folderId: args.folderId.trim(),
+          },
+        });
+      } catch (error) {
+        if (
+          error instanceof Prisma.PrismaClientKnownRequestError
+        ) {
+          if (error.code === "P2025") {
+            throw new GraphQLError(
+              "Bookmark not found",
+              {
+                extensions: {
+                  code: "NOT_FOUND",
+                },
+              },
+            );
+          }
+
+          if (error.code === "P2003") {
+            throw new GraphQLError(
+              "Folder not found",
+              {
+                extensions: {
+                  code: "NOT_FOUND",
+                },
+              },
+            );
+          }
+        }
+
+        throw error;
+      }
     },
 
     deleteBookmark: async (
       _parent: unknown,
       args: { id: string },
     ) => {
-      await prisma.bookmark.delete({
-        where: {
-          id: args.id,
-        },
-      });
+      try {
+        await prisma.bookmark.delete({
+          where: {
+            id: args.id,
+          },
+        });
 
-      return true;
+        return true;
+      } catch (error) {
+        return handlePrismaNotFound(
+          error,
+          "Bookmark not found",
+        );
+      }
     },
 
     moveBookmark: async (
@@ -256,14 +383,44 @@ export const resolvers = {
         });
       }
 
-      return prisma.bookmark.update({
-        where: {
-          id: args.id,
-        },
-        data: {
-          folderId: args.folderId.trim(),
-        },
-      });
+      try {
+        return await prisma.bookmark.update({
+          where: {
+            id: args.id,
+          },
+          data: {
+            folderId: args.folderId.trim(),
+          },
+        });
+      } catch (error) {
+        if (
+          error instanceof Prisma.PrismaClientKnownRequestError
+        ) {
+          if (error.code === "P2025") {
+            throw new GraphQLError(
+              "Bookmark not found",
+              {
+                extensions: {
+                  code: "NOT_FOUND",
+                },
+              },
+            );
+          }
+
+          if (error.code === "P2003") {
+            throw new GraphQLError(
+              "Folder not found",
+              {
+                extensions: {
+                  code: "NOT_FOUND",
+                },
+              },
+            );
+          }
+        }
+
+        throw error;
+      }
     },
   },
 };
