@@ -585,8 +585,16 @@ bun run test        →  9 pass, 0 fail
 
 ---
 
-## 🔮 How I'd Extend This
 
+## ⚖️ Tradeoffs
+
+- **Cursor pagination instead of offset pagination:** Cursor-based pagination provides stable pagination as data changes, but requires encoding and decoding cursors and maintaining a deterministic ordering using `createdAt` and `id`.
+- **Case-insensitive title substring search:** This keeps the implementation simple and works well for the current scope, but a larger dataset would benefit from PostgreSQL full-text search or a dedicated search index.
+- **Schema-first GraphQL:** Keeping the schema in `schema.graphql` makes the API contract explicit and separates it from resolver implementation, at the cost of maintaining the schema and resolver definitions separately.
+- **Bun Test instead of a separate testing framework:** Bun's built-in test runner keeps the project lightweight and reduces configuration, while still supporting both unit and PostgreSQL integration tests.
+- **Focused scope:** Authentication, authorization, caching and advanced observability were intentionally left out to keep the implementation focused on the assignment's core Bookmark Manager requirements.
+
+## 🔮 How I'd Extend This
 If this evolved into a larger production system:
 
 | Area | Direction |
